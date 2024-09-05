@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
 
   sigma_a["region_5"]=std::array<double, num_groups> {0.008002, 0.08344 };
   // sigma_a["region_5"]=std::array<double, num_groups> {{0.008002, 0.08344}, {0.008002, 0.073324}, {0.008002, 0.073324}};
-  double region5[3][2]={{0.008002, 0.08344}, {0.008002, 0.073324}, {0.008002, 0.073324}};
+  double region5[6]={0.008002, 0.08344,0.008002, 0.073324, 0.008002, 0.073324};
   
   Functional_Temperature["region_5"]=sigma_a["region_5"];
   FunctionalTime["region_5"]=sigma_a["region_5"];  
@@ -167,11 +167,15 @@ int main(int argc, char* argv[]) {
 
         materials[name] = reinterpret_cast<Material*>(new FunctionalMaterial(id_num));
         static_cast<FunctionalMaterial*>(materials[name])->setNumEnergyGroups(num_groups,Time[name].size());
+                 materials[name]->setDifCoef(DiffusionCoefficient[name].data(),num_groups);//DiffusionCoefficient
+        materials[name]->setBuckling(Buckling[name].data(),num_groups);//buckling
         static_cast<FunctionalMaterial*>(materials[name])->setGamma(Gamma[name].data(),num_groups);
         static_cast<FunctionalMaterial*>(materials[name])->sigmaAFuncTemp(true);
         static_cast<FunctionalMaterial*>(materials[name])->setTime(Time[name].data(),Time[name].size());
         static_cast<FunctionalMaterial*>(materials[name])->sigmaAFuncTime(true);
-        static_cast<FunctionalMaterial*>(materials[name])->setSigmaATime(Time[name].size(),num_groups,sigma_a[name].data());
+
+   
+        static_cast<FunctionalMaterial*>(materials[name])->setSigmaATime(Time[name].size(),num_groups,region5);
 
     }
     else{
@@ -179,6 +183,8 @@ int main(int argc, char* argv[]) {
             // std::cout<<name<<std::endl;
             materials[name] = reinterpret_cast<Material*>(new FunctionalMaterial(id_num));
             static_cast<FunctionalMaterial*>(materials[name])->setNumEnergyGroups(num_groups,1);
+                     materials[name]->setDifCoef(DiffusionCoefficient[name].data(),num_groups);//DiffusionCoefficient
+        materials[name]->setBuckling(Buckling[name].data(),num_groups);//buckling
             static_cast<FunctionalMaterial*>(materials[name])->setGamma(Gamma[name].data(),num_groups);
             static_cast<FunctionalMaterial*>(materials[name])->sigmaAFuncTemp(true);
             static_cast<FunctionalMaterial*>(materials[name])->setSigmaA(sigma_a[name].data(),num_groups);
@@ -189,6 +195,8 @@ int main(int argc, char* argv[]) {
 
             materials[name] = new Material(id_num);
             materials[name]->setNumEnergyGroups(num_groups);
+                     materials[name]->setDifCoef(DiffusionCoefficient[name].data(),num_groups);//DiffusionCoefficient
+        materials[name]->setBuckling(Buckling[name].data(),num_groups);//buckling
             materials[name]->setSigmaA(sigma_a[name].data(),num_groups);
         }
 
@@ -357,7 +365,7 @@ int main(int argc, char* argv[]) {
 //define mesh and geometry
     log_printf(NORMAL, "Creating cmfd mesh..");
 
-    Mesh* mesh = new Mesh(MOC,true);
+    Mesh* mesh = new Mesh(MOC,true,0.6,-1);
 
 
     log_printf(NORMAL, "Creating Geometry..");

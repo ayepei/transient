@@ -13,11 +13,11 @@
 static logLevel log_level = NORMAL;
 
 /**
- * @var logfile_name
+ * @var log_filename
  * @brief The name of the output logfile. By default this is an empty.
  *        and must be set for messages to be redirected to a logfile.
  */
-static std::string logfile_name = "";
+static std::string log_filename = "";
 
 
 /**
@@ -66,23 +66,50 @@ static char title_char = '*';
 static int line_length = 67;
 
 
+/* Rank of the domain */
+static int rank = 0;
+
+/* Number of domains */
+static int num_ranks = 1;
+
+#ifdef MPIx
+/* MPI communicator to transfer data with */
+static MPI_Comm _MPI_comm;
+
+/* Boolean to test if MPI is used */
+static bool _MPI_present = false;
+#endif
+
+
 /**
- * @brief Sets the output directory for log files. 
+ * @var log_error_lock
+ * @brief OpenMP mutex lock for ERROR messages which throw exceptions
+ */
+static omp_lock_t log_error_lock;
+
+void initialize_logger() {
+
+  /* Initialize OpenMP mutex lock for ERROR messages with exceptions */
+  omp_init_lock(&log_error_lock);
+}
+
+
+/**
+ * @brief Sets the output directory for log files.
  * @details If the directory does not exist, it creates it for the user.
  * @param directory a character array for the log file directory
  */
-void setOutputDirectory(char* directory) {
+void set_output_directory(char* directory) {
 
-    output_directory = std::string(directory);
+  output_directory = std::string(directory);
+  std::string log_directory;
 
-    /* Check to see if directory exists - if not, create it */
-    struct stat st;
-    if (!stat(directory, &st) == 0) {
-		mkdir(directory, S_IRWXU);
-        mkdir((output_directory+"/log").c_str(), S_IRWXU);
-    }
-
-    return;
+  /* Check to see if directory exists - if not, create it */
+  struct stat st;
+  if ((stat(directory, &st)) == 0) {
+    log_directory = std::string("") + directory + std::string("/log");
+    mkdir(log_directory.c_str(), S_IRWXU);
+  }
 }
 
 
@@ -90,7 +117,7 @@ void setOutputDirectory(char* directory) {
  * @brief Returns the output directory for log files.
  * @return a character array for the log file directory
  */
-const char* getOutputDirectory() {
+const char* get_output_directory() {
     return output_directory.c_str();
 }
 
@@ -99,8 +126,8 @@ const char* getOutputDirectory() {
  * @brief Sets the name for the log file.
  * @param filename a character array for log filename
  */
-void setLogfileName(char* filename) {
-    logfile_name = std::string(filename);
+void set_log_filename(char* filename) {
+    log_filename = std::string(filename);
 }
 
 
@@ -108,8 +135,8 @@ void setLogfileName(char* filename) {
  * @brief Returns the log filename.
  * @return a character array for the log filename
  */
-const char* getLogfileName() {
-    return logfile_name.c_str();
+const char* get_log_filename() {
+    return log_filename.c_str();
 }
 
 
@@ -117,7 +144,7 @@ const char* getLogfileName() {
  * @brief Sets the character to be used when printing SEPARATOR type log messages.
  * @param c the character for SEPARATOR type log messages
  */
-void setSeparatorCharacter(char c) {
+void set_separator_character(char c) {
     separator_char = c;
 }
 
@@ -126,7 +153,7 @@ void setSeparatorCharacter(char c) {
  * @brief Returns the character used to format SEPARATOR type log messages.
  * @return the character used for SEPARATOR type log messages
  */
-char getSeparatorCharacter() {
+char get_separator_character() {
     return separator_char;
 }
 
@@ -134,7 +161,7 @@ char getSeparatorCharacter() {
  * @brief Sets the character to be used when printing HEADER type log messages.
  * @param c the character for HEADER type log messages
  */
-void setHeaderCharacter(char c) {
+void set_header_character(char c) {
     header_char = c;
 }
 
@@ -143,7 +170,7 @@ void setHeaderCharacter(char c) {
  * @brief Returns the character used to format HEADER type log messages.
  * @return the character used for HEADER type log messages
  */
-char getHeaderCharacter() {
+char get_header_character() {
     return header_char;
 }
 
@@ -152,7 +179,7 @@ char getHeaderCharacter() {
  * @brief Sets the character to be used when printing TITLE type log messages.
  * @param c the character for TITLE type log messages
  */
-void setTitleCharacter(char c) {
+void set_title_character(char c) {
     title_char = c;
 }
 
@@ -161,7 +188,7 @@ void setTitleCharacter(char c) {
  * @brief Returns the character used to format TITLE type log messages.
  * @return the character used for TITLE type log messages
  */
-char getTitleCharacter() {
+char get_title_character() {
     return title_char;
 }
 
@@ -172,7 +199,7 @@ char getTitleCharacter() {
             multiline messages.
  * @param length the maximum log message line length in characters
  */
-void setLineLength(int length) {
+void set_line_length(int length) {
     line_length = length;
 }
 
@@ -182,7 +209,7 @@ void setLineLength(int length) {
  *        console and to the log file.
  * @param newlevel the minimum logging level
  */
-void setLogLevel(const char* newlevel) {
+void set_log_level(const char* newlevel) {
 
     if (strcmp("DEBUG", newlevel) == 0) {
         log_level = DEBUG;
@@ -232,12 +259,21 @@ void setLogLevel(const char* newlevel) {
     return;
 }
 
+/**
+ * @brief Sets the minimum log message level which will be printed to the
+ *        console and to the log file. This is an overloaded version to handle 
+ *        a logLevel type input.
+ * @param new_level the minimum logging level as an int (or enum type logLevel)
+ */
+void set_log_level(int new_level) {
+  log_level = (logLevel)new_level;
+}
 
 /**
  * @brief Return the minimum level for log messages printed to the screen.
  * @return the minimum level for log messages
  */
-int getLogLevel(){
+int get_log_level(){
      return log_level;
 }
 
@@ -421,7 +457,7 @@ void log_printf(logLevel level, const char *format, ...) {
 
             /* Write the message to the output file */
             std::ofstream logfile;
-            logfile.open ((output_directory + "/" + logfile_name).c_str(), 
+            logfile.open ((output_directory + "/" + log_filename).c_str(), 
 			  std::ios::app); 
 
             /* Append date, time to the top of log output file */
@@ -437,13 +473,39 @@ void log_printf(logLevel level, const char *format, ...) {
 
         /* Write the log message to the logfile */
         std::ofstream logfile;
-        logfile.open((output_directory + "/" + logfile_name).c_str(), 
+        logfile.open((output_directory + "/" + log_filename).c_str(), 
 		     std::ios::app);
         logfile << msg_string;
         logfile.close();
 
+
+
+
         /* Write the log message to the shell */
-        std::cout << msg_string;
+        if (level == ERROR) {
+            omp_set_lock(&log_error_lock);
+        #ifdef MPIx
+            if (_MPI_present) {
+                printf("%s", "[  ERROR  ]  ");
+                printf("%s", &msg_string[0]);
+                fflush(stdout);
+                MPI_Abort(_MPI_comm, 0);
+            }
+        #endif
+            omp_unset_lock(&log_error_lock);
+            throw std::logic_error(&msg_string[0]);
+            }
+            else {
+            //Note lock output in Python build for thread safety
+        #ifdef SWIG
+            omp_set_lock(&log_error_lock);
+        #endif
+            printf("%s", &msg_string[0]);
+            fflush(stdout);
+        #ifdef SWIG
+            omp_unset_lock(&log_error_lock);
+        #endif
+            }
     }
 }
 
