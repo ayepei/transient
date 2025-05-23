@@ -18,9 +18,9 @@
  * @brief The type of universe level on which the localcoords reside
  */
 enum coordType {
-    /** A universe level coordinate type */
+    /** A universe level coordinate type 普通宇宙层级坐标*/
     UNIV,
-    /** A lattice level coordinate type */
+    /** A lattice level coordinate type 晶格层级坐标*/
     LAT
 };
 

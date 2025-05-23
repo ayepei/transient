@@ -400,7 +400,7 @@ void CellBasic::sectorize() {
 
         /* Add new bounding planar surfaces to the clone */
         sector->addSurface(+1, planes.at(i));
-
+    // 扇区有两个边界，需要添加下一个半区的负边界。
 	if (_num_sectors != 2) {
 	    if (i+1 < _num_sectors)
 	        sector->addSurface(-1, planes.at(i+1));
@@ -417,7 +417,7 @@ void CellBasic::sectorize() {
     delete [] azim_angles;
 }
 
-
+// 划分为等面积的同心圆
 void CellBasic::ringify() {
 
     if (_num_rings == 0)

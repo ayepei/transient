@@ -13,7 +13,7 @@
 #include <math.h>
 #include "Material.h"
 #include "TimeStepper.h"
-#include "FunctionalMaterial.h"
+// #include "FunctionalMaterial.h"
 #include "Geometry.h"
 #include "Timer.h"
 #include "Mesh.h"
@@ -30,35 +30,35 @@ protected:
   Timer* _timer;
 
   /* integer values */
-  int _cells_x;
+  int _cells_x; // x方向网格数
   int _cells_y;
   int _num_groups;
-  int _nc;
-  int _num_delay_groups;
+  int _nc; // 总单元数(cells_x * cells_y * _num_groups)
+  int _num_delay_groups; // 缓发中子组数
 
   /* float values */
-  double _omega;
-  double _k_eff_0;
-  double _beta_sum;
-  double _dt_cmfd;
-  double _conv_criteria;
+  double _omega; // 松弛因子
+  double _k_eff_0; // 初始k有效值
+  double _beta_sum; // 缓发中子份额总和
+  double _dt_cmfd; // CMFD时间步长
+  double _conv_criteria; // 收敛判据
   
   /* matrix and vector objects */
-  double* _b_prime;
-  double* _b;
-  double* _A;
-  double* _M;
-  double* _phi_old;
+  double* _b_prime; // 修正的右端项
+  double* _b; // 右端项
+  double* _A; // 损失矩阵
+  double* _M; // 裂变矩阵
+  double* _phi_old; // 旧通量
   double* _phi_new;
   double* _phi_temp;
-  double* _snew;
+  double* _snew; // 新源项
   double* _sold;
-  double* _AM;
+  double* _AM; // A和M的乘积
  
   /* materials parameters */
-  double* _beta;
-  double* _lambda;
-  double* _velocity;
+  double* _beta; // 缓发中子份额
+  double* _lambda; // 缓发中子衰变常数
+  double* _velocity; // 中子速度
 
   /* solve method (DIFFUSION or MOC) */
   solveType _solve_method; 

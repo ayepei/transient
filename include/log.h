@@ -25,9 +25,12 @@
 #include <math.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <omp.h>
 #endif
 
-
+#ifdef MPIx
+#include <mpi.h>
+#endif
 /**
  * @enum logLevels
  * @brief Logging levels characterize an ordered set of message types
@@ -46,6 +49,9 @@ typedef enum logLevels {
 
     /** An informational but verbose message */
     INFO,
+    
+    /** An informational verbose message - printed by rank 0 process only */
+    INFO_ONCE,
 
     /** A brief progress update on run progress */
     NORMAL,
@@ -62,8 +68,13 @@ typedef enum logLevels {
     /** A message for to warn the user */
     WARNING,
 
+    /** A message to warn the user - to be printed by rank 0 process only */
+    WARNING_ONCE,
     /** A message to warn of critical program conditions */
     CRITICAL,
+
+    /** A brief progress update by node on run progress */
+    NODAL,
 
     /** A message containing program results */
     RESULT,
@@ -83,24 +94,25 @@ typedef enum logLevels {
  */
 extern void set_err(const char *msg);
 
-void setOutputDirectory(char* directory);
-const char* getOutputDirectory();
-void setLogfileName(char* filename);
-const char* getLogfileName();
+void initialize_logger();
+void set_output_directory(char* directory);
+const char* get_output_directory();
+void set_log_filename(char* filename);
+const char* get_log_filename();
 
-void setSeparatorCharacter(char c);
-char getSeparatorCharacter();
-void setHeaderCharacter(char c);
-char getHeaderCharacter();
-void setTitleCharacter(char c);
-char getTitleCharacter();
-void setLineLength(int length);
+void set_separator_character(char c);
+char get_separator_character();
+void set_header_character(char c);
+char get_header_character();
+void set_title_character(char c);
+char get_title_character();
+void set_line_length(int length);
 
-void setLogLevel(const char* newlevel);
-int getLogLevel();
+void set_log_level(const char* newlevel);
+int get_log_level();
 
 void log_printf(logLevel level, const char *format, ...);
-std::string createMultilineMsg(std::string level, std::string message);
+std::string create_multiline_msg(std::string level, std::string message);
 
 
 #endif /* LOG_H_ */

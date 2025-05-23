@@ -33,7 +33,7 @@ class Geometry {
 
 private:
 
-    /** The minimum point along the x-axis contained by geometry in cm */
+    /** The minimum point along the x-axis contained by geometry in cm 几何图形包含的沿 x 轴的最小点，单位为 cm*/
     double _x_min;
 
     /** The maximum point along the x-axis contained by geometry in cm */    

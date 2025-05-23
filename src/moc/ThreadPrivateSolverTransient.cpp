@@ -47,17 +47,17 @@ void ThreadPrivateSolverTransient::initialize(){
     _k_eff = 1.0;
 
     /* Initialize data structures */
-    initializePolarQuadrature();
-    initializeFluxArrays();
-    initializeSourceArrays();
-    precomputePrefactors();
-    initializeFSRs();
+    initializePolarQuadrature();//新版本在TrackGenerator当中设置   初始化极角离散
+    initializeFluxArrays(); // 初始化通量数组
+    initializeSourceArrays(); // 初始化源项数组
+    precomputePrefactors(); // 预计算指数项
+    initializeFSRs(); // 初始化FSR
 
     /* Check that each FSR has at least one segment crossing it */
-    checkTrackSpacing();
+    checkTrackSpacing(); // 检查特征线覆盖
 
     /* initialize cmfd */
-    initializeCmfd();
+    initializeCmfd(); // 初始化CMFD加速
 
     /* Set scalar flux to unity for each region */
     flattenFSRFluxes(1.0);
@@ -134,7 +134,7 @@ FP_PRECISION ThreadPrivateSolverTransient::convergeSource(int max_iterations) {
     /* The residual on the source */
     FP_PRECISION residual = 0.0;
 
-    if (_geometry->getMesh()->getInitialState())
+    if (_geometry->getMesh()->getInitialState())//这里初始计算时True，后续solveouterStep计算时是false
       log_printf(NORMAL, "Iter %d: \tk_eff = %1.6f \tCMFD k_eff = %1.6f"
 		 "\tres = %1.3E", 0, _k_eff, _k_eff, residual);
     else
@@ -146,7 +146,8 @@ FP_PRECISION ThreadPrivateSolverTransient::convergeSource(int max_iterations) {
     for (int i=0; i < max_iterations; i++) {
 
 	/* normalize the fluxes */
-        if (_geometry->getMesh()->getInitialState()){
+        // if (_geometry->getMesh()->getInitialState()){
+    if (_geometry->getMesh()->getInitialState() || _geometry->getMesh()->getTransientType() == ADIABATIC){//使用是ADIABATIC
 	    _timer->startTimer();
 	    normalizeFluxes();
 	    _timer->stopTimer();
@@ -194,7 +195,8 @@ FP_PRECISION ThreadPrivateSolverTransient::convergeSource(int max_iterations) {
 		     "\tres = %1.3E", _num_iterations, getReactivity(), residual);
 
 	/* Check for convergence of the fission source distribution */
-	if (i >= 1 && residual < _source_convergence_thresh) {	    
+        if (i >= 1 && residual < _source_convergence_thresh) {
+      // 计算截面和扩散系数    
 	  _cmfd->getMesh()->computeXS();
 	  _cmfd->getMesh()->computeDs(1.0);
 	  _timer->stopTimer();
@@ -253,8 +255,9 @@ FP_PRECISION ThreadPrivateSolverTransient::computeFSRSources() {
     double* coarse_flux_old = mesh->getFluxes(PREVIOUS_CONV);
     double* volumes = mesh->getVolumes();
     double* velocity = mesh->getVelocity();
-    double* frequency_new = mesh->getFrequencies(CURRENT);
-    double* frequency_old = mesh->getFrequencies(PREVIOUS);
+    // double* frequency_new = mesh->getFrequencies(CURRENT);
+    // double* frequency_old = mesh->getFrequencies(PREVIOUS);
+	double* frequency = mesh->getFrequency();
     double old_flux;
     double dt = mesh->getDtMOC();
     TimeStepper* ts = mesh->getTimeStepper();
@@ -292,7 +295,9 @@ FP_PRECISION ThreadPrivateSolverTransient::computeFSRSources() {
 							    _num_groups);
 	
 		/* delayed neutron precursor source */
-		if (mesh->getInitialState() == false){
+		// if (mesh->getInitialState() == false){
+		if (mesh->getInitialState() == false && mesh->getTransientType() != ADIABATIC){
+
 		    delayed_source = 0.0;
 		    if (material->isFissionable()){
 			for (int dg=0; dg < mesh->getNumDelayGroups(); dg++)
@@ -313,7 +318,9 @@ FP_PRECISION ThreadPrivateSolverTransient::computeFSRSources() {
 			method_source = 1.0/(velocity[G]) * 
 			    (old_flux * coarse_flux_new[i*_num_groups+G] 
 			    / coarse_flux_old[i*_num_groups+G] / dt 
-			     - _scalar_flux(r,G) * (1.0 / dt + frequency_new[i*_num_groups+G]));
+			    //  - _scalar_flux(r,G) * (1.0 / dt + frequency_new[i*_num_groups+G]));
+					- _scalar_flux(r,G) * (1.0 / dt + frequency[i*_num_groups+G]));
+
 		    }
 		    
 		    /* Set the total source for region r in group G */
@@ -345,12 +352,17 @@ FP_PRECISION ThreadPrivateSolverTransient::computeFSRSources() {
 		_reduced_source(r,G) = _source(r,G) / sigma_t[G];
 		
 		/* Compute the norm of residual of the source in the region, group */
-		if (fabs(_source(r,G)) > 1E-10)
-		    _source_residuals(r,G) = pow((_source(r,G) - _old_source(r,G)) 
-						 / _source(r,G), 2);
+		// if (fabs(_source(r,G)) > 1E-10)
+		//     _source_residuals(r,G) = pow((_source(r,G) - _old_source(r,G)) 
+		// 				 / _source(r,G), 2);
+			if (fabs(chi[G]*fission_source/_k_eff) > 1E-10)
+		  _source_residuals(r,G) = pow((chi[G]*fission_source/_k_eff - _old_source(r,G)) 
+					       / (chi[G]*fission_source/_k_eff), 2);
 		
 		/* Update the old source */
-		_old_source(r,G) = _source(r,G);		
+		// _old_source(r,G) = _source(r,G);	
+			_old_source(r,G) = chi[G]*fission_source/_k_eff;
+	
 	    }
 	}
     }
@@ -415,7 +427,7 @@ void ThreadPrivateSolverTransient::flattenFSRFluxes(FP_PRECISION value) {
     CPUSolver::flattenFSRFluxes(value);
 
     /* Flatten the thread private flat source region scalar flux array */
-    #pragma omp parallel for schedule(guided)
+    // #pragma omp parallel for schedule(guided)
     for (int tid=0; tid < _num_threads; tid++) {
         for (int r=0; r < _num_FSRs; r++) {
 	    for (int e=0; e < _num_groups; e++) {

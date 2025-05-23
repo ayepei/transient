@@ -42,9 +42,10 @@ void TimeStepper::setTime(materialState state, double time){
 }
 
 
-double TimeStepper::getImprovedRatio(){
-
-    double ratio = (_state_times[int(CURRENT)] - _state_times[int(PREVIOUS_CONV)]) / _dt_moc;
+// double TimeStepper::getImprovedRatio(){
+double TimeStepper::getImprovedRatio(materialState state){
+    // double ratio = (_state_times[int(CURRENT)] - _state_times[int(PREVIOUS_CONV)]) / _dt_moc;
+    double ratio = (_state_times[int(state)] - _state_times[int(PREVIOUS_CONV)]) / _dt_moc;
     return ratio;
 }
 
@@ -57,11 +58,17 @@ double TimeStepper::getDtMOC(){
     return _dt_moc;
 }
 
+void TimeStepper::setDtMOC(double dt){
+    _dt_moc = dt;
+}
 
 double TimeStepper::getDtCMFD(){
     return _dt_cmfd;
 }
 
+void TimeStepper::setDtCMFD(double dt){
+    _dt_cmfd = dt;
+}
 
 void TimeStepper::convergedMOCStep(){
     _state_times[int(PREVIOUS_CONV)] = _state_times[int(CURRENT)];

@@ -37,12 +37,12 @@ private:
     quadratureType _type;
     /** The number of polar angles */
     int _num_polar_angles;
-    /** An array of the sine of the polar angles from the quadrature set */
+    /** An array of the sine of the polar angles from the quadrature set 极角正弦值数组*/
     FP_PRECISION* _sinthetas;
-    /** An array of the weights for the polar angles from the quadrature set */
+    /** An array of the weights for the polar angles from the quadrature set 权重系数数组*/
     FP_PRECISION* _weights;
     /** An array of the sine multipled by the weight for the polar angles from 
-     *  the quadrature set */
+     *  the quadrature set 权重与正弦值乘积*/
     FP_PRECISION* _multiples;
 
 public:

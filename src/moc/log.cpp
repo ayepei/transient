@@ -72,13 +72,13 @@ static int rank = 0;
 /* Number of domains */
 static int num_ranks = 1;
 
-#ifdef MPIx
-/* MPI communicator to transfer data with */
-static MPI_Comm _MPI_comm;
+// #ifdef MPIx
+// /* MPI communicator to transfer data with */
+// static MPI_Comm _MPI_comm;
 
-/* Boolean to test if MPI is used */
-static bool _MPI_present = false;
-#endif
+// /* Boolean to test if MPI is used */
+// static bool _MPI_present = false;
+// #endif
 
 
 /**
@@ -305,7 +305,7 @@ void log_printf(logLevel level, const char *format, ...) {
 
                 /* If message is too long for a line, split into many lines */
                 if (int(msg.length()) > line_length)
-                    msg_string = createMultilineMsg(level_prefix, msg);
+                    msg_string = create_multiline_msg(level_prefix, msg);
 
                 /* Puts message on single line */
                 else
@@ -320,7 +320,7 @@ void log_printf(logLevel level, const char *format, ...) {
 
                 /* If message is too long for a line, split into many lines */
                 if (int(msg.length()) > line_length)
-                    msg_string = createMultilineMsg(level_prefix, msg);
+                    msg_string = create_multiline_msg(level_prefix, msg);
 
                 /* Puts message on single line */
                 else
@@ -335,7 +335,7 @@ void log_printf(logLevel level, const char *format, ...) {
 
                 /* If message is too long for a line, split into many lines */
                 if (int(msg.length()) > line_length)
-                    msg_string = createMultilineMsg(level_prefix, msg);
+                    msg_string = create_multiline_msg(level_prefix, msg);
 
                 /* Puts message on single line */
                 else
@@ -385,7 +385,7 @@ void log_printf(logLevel level, const char *format, ...) {
 
                 /* If message is too long for a line, split into many lines */
                 if (int(msg.length()) > line_length)
-                    msg_string = createMultilineMsg(level_prefix, msg);
+                    msg_string = create_multiline_msg(level_prefix, msg);
 
                 /* Puts message on single line */
                 else
@@ -400,7 +400,7 @@ void log_printf(logLevel level, const char *format, ...) {
 
                 /* If message is too long for a line, split into many lines */
                 if (int(msg.length()) > line_length)
-                    msg_string = createMultilineMsg(level_prefix, msg);
+                    msg_string = create_multiline_msg(level_prefix, msg);
 
                 /* Puts message on single line */
                 else
@@ -418,7 +418,7 @@ void log_printf(logLevel level, const char *format, ...) {
 
                 /* If message is too long for a line, split into many lines */
                 if (int(msg.length()) > line_length)
-                    msg_string = createMultilineMsg(level_prefix, msg);
+                    msg_string = create_multiline_msg(level_prefix, msg);
 
                 /* Puts message on single line */
                 else
@@ -434,7 +434,7 @@ void log_printf(logLevel level, const char *format, ...) {
 
         /* If message is too long for a line, split into many lines */
         if (int(msg.length()) > line_length)
-          msg_string = createMultilineMsg(level_prefix, msg);
+          msg_string = create_multiline_msg(level_prefix, msg);
 
         /* Puts message on single line */
         else
@@ -519,7 +519,7 @@ void log_printf(logLevel level, const char *format, ...) {
  * @param message a string containing the log message 
  * @return a string with a formatted multiline message
  */
-std::string createMultilineMsg(std::string level, std::string message) {
+std::string create_multiline_msg(std::string level, std::string message) {
 
     int size = message.length();
 

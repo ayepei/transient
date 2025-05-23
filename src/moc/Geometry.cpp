@@ -1078,7 +1078,7 @@ void Geometry::initializeFlatSourceRegions() {
 
     /* Subdivide cells into sectors and regions */
     subdivideCells();
-
+    // at(0)表示获取ID为0的Universe(基础宇宙/根宇宙)
     /* Generate flat source regions */
     Universe *univ = _universes.at(0);
     _num_FSRs = univ->computeFSRMaps();
@@ -1099,8 +1099,7 @@ void Geometry::initializeFlatSourceRegions() {
         _FSRs_to_materials_id[r] = getMaterial(curr->getMaterial())->getId();
     }
 
-
-    //if (_mesh->getCmfdOn())
+    if (_mesh->getCmfdOn())
       initializeMesh();
 }
 
@@ -1173,7 +1172,7 @@ void Geometry::segmentize(Track* track) {
 	fsr_id = findFSRId(&segment_start);
 
 	/* Compute the number of segments to cut this segment into to ensure
-	 * that it's length is small enough for the exponential hashtable */
+	 * that it's length is small enough for the exponential hashtable 每个能群计算所需的分段数*/
 	min_num_segments = 1;
 	for (int e=0; e < _num_groups; e++) {
 	    num_segments = ceil(segment_length * sigma_t[e] / 10.0);

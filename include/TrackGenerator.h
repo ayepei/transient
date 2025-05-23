@@ -24,7 +24,7 @@
 /**
  * @class TrackGenerator TrackGenerator.h "openmoc/src/host/TrackGenerator.h"
  * @brief The track generator is dedicated to generating tracks which cyclically
- *        wrap across the geometry.
+ *        wrap across the geometry.轨迹生成器专用于生成循环环绕几何体的轨迹
  * @details The track generator creates track and initializes boundary 
  *          conditions (vacuum or reflective) for each track.
  */
@@ -50,17 +50,17 @@ private:
     int _tot_num_segments;
 
     /** An array of the number of tracks starting on the x-axis for each
-     *  azimuthal angle */
+     *  azimuthal angle 从 x 轴开始的轨迹数量数组*/
     int* _num_x;
 
     /** An array of the number of tracks starting on the y-axis for each
-     *  azimuthal angle */
+     *  azimuthal angle 从 y 轴开始的轨迹数量数组*/
     int* _num_y;
 
     /** An array of the weights for each azimuthal angle */
     double* _azim_weights;
 
-    /** A 2D ragged array of tracks */
+    /** A 2D ragged array of tracks 二维不规则数组，存储所有轨迹，第一个索引是方位角，第二个是相同索引的特征线的索引*/
     Track** _tracks;
 
     /** Pointer to the geometry */

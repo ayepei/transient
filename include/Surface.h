@@ -43,7 +43,7 @@ enum surfaceType {
     YPLANE,
     /** A plane perpendicular to the z-axis */
     ZPLANE,
-    /** A generalized quadratic surface */
+    /** A generalized quadratic surface 广义二次曲面*/
     QUADRATIC
 };
 
@@ -156,7 +156,7 @@ public:
 
 /**
  * @class Plane Surface.h "openmoc/src/host/Surface.h"
- * @brief Represents a plane perpendicular to the xy-plane.
+ * @brief Represents a plane perpendicular to the xy-plane.对 2D 平面中直线的表示，继承自 Surface 类。其基本形式为：Ax + By + C = 0
  */
 class Plane: public Surface {
 
@@ -191,7 +191,7 @@ public:
 
 /**
  * @class XPlane Surface.h "openmoc/src/host/Surface.h"
- * @brief Represents a plane perpendicular to the x-axis.
+ * @brief Represents a plane perpendicular to the x-axis.平行x轴的平面，x=_x
  */
 class XPlane: public Plane {
 

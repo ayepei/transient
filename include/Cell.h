@@ -118,10 +118,10 @@ private:
     /** A pointer to the material filling this cell */
     int _material;
 
-    /** The number of rings sub-dividing this cell */
+    /** The number of rings sub-dividing this cell 环*/
     int _num_rings;
 
-    /** The number of sectors sub-dividing this cell */
+    /** The number of sectors sub-dividing this cell 扇区*/
     int _num_sectors;
 
     std::vector<CellBasic*> _rings;

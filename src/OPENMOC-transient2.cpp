@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
   int max_iters = 1000;
 
   /* Set logging information */
-  setLogLevel("NORMAL");
+  set_log_level("NORMAL");
   log_printf(TITLE, "Simulating the LRA Benchmark Problem...");
 
   /* Define material properties */

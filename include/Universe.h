@@ -119,13 +119,13 @@ class Lattice: public Universe {
 
 private:
 
-    /** The number of lattice cells along the x-axis */
+    /** The number of lattice cells along the x-axis 单元*/
     int _num_x;
 
     /** The number of lattice cells along the y-axis */
     int _num_y;
 
-    /** The width of each lattice cell (cm) along the x-axis */
+    /** The width of each lattice cell (cm) along the x-axis 单元宽度*/
     double _width_x;
 
     /** The width of each lattice cell (cm) along the y-axis */

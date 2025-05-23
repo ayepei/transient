@@ -1,4 +1,6 @@
 #include "TrackGenerator.h"
+#include <iostream>
+#include <ostream>
 
 
 /**
@@ -169,7 +171,7 @@ bool TrackGenerator::containsTracks() {
 
 
 /**
- * @brief Fills an array with the x,y coordinates for each track.
+ * @brief Fills an array with the x,y coordinates for each track.获取所有轨道的起点和终点
  * @details This class method is intended to be called by the OpenMOC
  *          Python "plotter" module as a utility to assist in plotting
  *          tracks. Although this method appears to require two arguments,
@@ -208,7 +210,7 @@ void TrackGenerator::retrieveTrackCoords(double* coords, int num_tracks) {
 
 
 /**
- * @brief Fills an array with the x,y coordinates for each track segment.
+ * @brief Fills an array with the x,y coordinates for each track segment.获得所有segment的详细信息
  * @details This class method is intended to be called by the OpenMOC
  *          Python "plotter" module as a utility to assist in plotting
  *          segments. Although this method appears to require two arguments,
@@ -324,7 +326,7 @@ void TrackGenerator::setGeometry(Geometry* geometry) {
 }
 
 /**
- * @brief Generates tracks for some number of azimuthal angles and track spacing * @details Computes the effective angles and track spacings. Computes the 
+ * @brief Generates tracks for some number of azimuthal angles and track spacing 看不懂* @details Computes the effective angles and track spacings. Computes the 
  *          number of tracks for each azimuthal angle, allocates memory for 
  *          all tracks at each angle and sets each track's starting and ending 
  *          points, azimuthal weight, and azimuthal angle.
@@ -351,7 +353,7 @@ void TrackGenerator::generateTracks() {
 
     /** Create tracks directory if one does not yet exist */
     std::stringstream directory;
-    directory << getOutputDirectory() << "/tracks";
+    directory << get_output_directory() << "/tracks";
     struct stat st;
     if (!stat(directory.str().c_str(), &st) == 0)
         mkdir(directory.str().c_str(), S_IRWXU);    
@@ -407,13 +409,13 @@ void TrackGenerator::generateTracks() {
                        "spacings...");
 
             /* Each element in arrays corresponds to a track angle in phi_eff */
-            /* Track spacing along x,y-axes, and perpendicular to each track */ 
-            double* dx_eff = new double[_num_azim];
-            double* dy_eff = new double[_num_azim];
-            double* d_eff = new double[_num_azim];
+            /* Track spacing along x,y-axes, and perpendicular to each track */
+            double *dx_eff = new double[_num_azim]; // x方向的特征线间距
+            double *dy_eff = new double[_num_azim]; // y方向的特征线间距
+            double *d_eff = new double[_num_azim]; // 垂直于特征线方向的间距
 
             /* Effective azimuthal angles with respect to positive x-axis */
-            double* phi_eff = new double[_num_azim];
+            double* phi_eff = new double[_num_azim];// 相对于x轴正方向的实际方位角
 
             double x1, x2;
             double iazim = _num_azim*2.0;
@@ -424,19 +426,19 @@ void TrackGenerator::generateTracks() {
             for (int i = 0; i < _num_azim; i++) {
 
                 /* desired angle */
-                double phi = 2.0 * M_PI / iazim * (0.5 + i);
+                double phi = 2.0 * M_PI / iazim * (0.5 + i);   // 计算期望方位角
 
                 /* num intersections with x,y-axes */
-                _num_x[i] = (int) (fabs(width / _spacing * sin(phi))) + 1;
+                _num_x[i] = (int) (fabs(width / _spacing * sin(phi))) + 1; // 计算x轴交点
                 _num_y[i] = (int) (fabs(height / _spacing * cos(phi))) + 1;
 
                 /* total num of tracks */
                 _num_tracks[i] = _num_x[i] + _num_y[i];
             
-                /* effective/actual angle (not the angle we desire, but close */
+                /* effective/actual angle (not the angle we desire, but close   计算实际方位角*/
                 phi_eff[i] = atan((height * _num_x[i]) / (width * _num_y[i]));
 
-                /* fix angles in range(pi/2, pi) */
+                /* fix angles in range(pi/2, pi) 调整大于90度的角度*/
                 if (phi > M_PI / 2)
                     phi_eff[i] = M_PI - phi_eff[i];
 
@@ -450,16 +452,16 @@ void TrackGenerator::generateTracks() {
             for (int i = 0; i < _num_azim; i++) {
           
                 if (i < _num_azim - 1)
-                    x1 = 0.5 * (phi_eff[i+1] - phi_eff[i]);
+                    x1 = 0.5 * (phi_eff[i+1] - phi_eff[i]);  // 计算前向角度差
                 else
-                    x1 = 2 * M_PI / 2.0 - phi_eff[i];
+                    x1 = 2 * M_PI / 2.0 - phi_eff[i]; // 最后一个角度
 
                 if (i >= 1)
-                    x2 = 0.5 * (phi_eff[i] - phi_eff[i-1]);
+                    x2 = 0.5 * (phi_eff[i] - phi_eff[i-1]); // 计算后向角度差
                 else
-                    x2 = phi_eff[i];
+                    x2 = phi_eff[i]; // 第一个角度
 
-                /* Multiply weight by 2 because angles are in [0, Pi] */
+                /* Multiply weight by 2 because angles are in [0, Pi] 计算权重*/
                 _azim_weights[i] = (x1 + x2) / (2 * M_PI) * d_eff[i] * 2;
             }
 
@@ -607,7 +609,7 @@ void TrackGenerator::computeEndPoint(Point* start, Point* end,
 
 
 /**
- * @brief Initializes boundary conditions for each track. 
+ * @brief Initializes boundary conditions for each track. 看不懂
  * @details Sets boundary conditions by setting the incoming and outgoing tracks *          for each track using a special indexing scheme into the 2d jagged 
  *          array of tracks
  */
@@ -615,9 +617,9 @@ void TrackGenerator::initializeBoundaryConditions() {
 
     log_printf(NORMAL, "Initializing track boundary conditions...");
 
-    int nxi, nyi, nti;   /* nx, ny, nt for a particular angle */
-    Track *curr;
-    Track *refl;
+    int nxi, nyi, nti;   /* nx, ny, nt for a particular angle 当前方位角的x轴轨迹数、y轴轨迹数、总轨迹数*/
+    Track *curr;         // 当前轨迹指针
+    Track *refl;         // 反射轨迹指针
 
     /* Loop over only half the angles since we will set the pointers for
      * connecting tracks at the same time
@@ -962,7 +964,10 @@ void TrackGenerator::dumpTracksToFile() {
 
     std::string geometry_to_string = _geometry->toString();
     int string_length = geometry_to_string.length();
-
+    if (out == NULL) {
+      log_printf(NORMAL, "Failed to open file %s for writing",
+                 _tracks_filename.c_str());
+    }
     fwrite(&string_length, sizeof(int), 1, out);
     fwrite(geometry_to_string.c_str(), sizeof(char)*string_length, 1, out);
 
@@ -1092,8 +1097,8 @@ bool TrackGenerator::readTracksFromFile() {
     int material_id;
     int region_id;
 
-    int mesh_surface_fwd;
-    int mesh_surface_bwd;
+    int mesh_surface_fwd; // 特征线段前向穿越的网格表面ID
+    int mesh_surface_bwd; // 特征线段后向穿越的网格表面ID
 
     for (int i=0; i < _num_azim; i++)
         _tot_num_tracks += _num_tracks[i];

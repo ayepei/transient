@@ -10,20 +10,26 @@ int main(int argc, char* argv[]) {
   #ifdef OPENMP
   int num_threads = omp_get_num_procs();
   #else
-  int num_threads = 1;
+//   int num_threads = 28;
+int num_threads = 32;
   #endif
-  double track_spacing = 0.1;
-  int num_azim = 4;
-  double tolerance = 1e-5;
-  int max_iters = 1000;
-  double dt_cmfd = 1e-3;
-  double dt_moc = 1e-2;
-  /* Set logging information */
-  setLogLevel("NORMAL");
-  setOutputDirectory("/public/home/aicao/lsder/OpenMOC-transient/build/log");
-  setLogfileName("2024.3.6");
-  log_printf(TITLE, "Simulating the LRA Benchmark Problem...");
+  double track_spacing = 0.1; // 特征线间距(cm)   原来为0.1需要改回来
+  int num_azim = 4;           // 方位角离散数     
+  double tolerance = 1e-5;    // 收敛容差
+  int max_iters = 1000;       // 最大迭代次数
+  double dt_cmfd = 5e-4;//控制内循环的时间间隔最终例子为dt_cmfd = 1e-4
+  double dt_moc = 5e-3;//控制外循环的时间间隔最终例子为dt_moc = 1e-3
 
+//   double dt_cmfd = 1e-3;
+//   double dt_moc = 1e-2;
+  /* Set logging information */
+  set_log_level("NORMAL");
+//   set_output_directory("/work1/wangjh/yumiao/xuerong/OpenMOC-transient_update/"
+//                        "transient_update/build/log");
+  set_output_directory("/home/jrkkkkkk/hpc/transient_update/build/log");
+  set_log_filename("0522");
+  log_printf(TITLE, "Simulating the LRA Benchmark Problem...");
+    // 轻水堆基
   /* Define material properties */
   log_printf(NORMAL, "Defining material properties...");
 
@@ -48,7 +54,7 @@ int main(int argc, char* argv[]) {
 
   /* Define region_1 cross-sections */
   nu_sigma_f["region_1"] = std::array<double, num_groups> {0.004602, 0.1091};
-  sigma_f["region_1"] = std::array<double, num_groups> {0.002, 0.05};
+  sigma_f["region_1"] = std::array<double, num_groups> {0.0018938272, 0.044897119};
   sigma_s["region_1"] = std::array<double, num_groups*num_groups>
       {0.232022, 0.02533, 0.00, 1.479479};
   chi["region_1"] = std::array<double, num_groups> {1.0, 0.0};
@@ -72,7 +78,7 @@ int main(int argc, char* argv[]) {
   sigma_t["region_2"] = std::array<double, num_groups> {0.2629, 1.7525};
   sigma_s["region_2"] = std::array<double, num_groups*num_groups>
       {0.22803, 0.02767, 0.00, 1.682071};
-  sigma_f["region_2"] = std::array<double, num_groups> {0.002, 0.045};
+  sigma_f["region_2"] = std::array<double, num_groups> {0.0018967078, 0.035699588};
   nu_sigma_f["region_2"] = std::array<double, num_groups> {0.004609, 0.08675};
   chi["region_2"] = std::array<double, num_groups> {1.0, 0.0};
   DiffusionCoefficient["region_2"]=std::array<double,num_groups> {1.268, 0.1902};
@@ -88,7 +94,7 @@ int main(int argc, char* argv[]) {
   sigma_t["region_3"] = std::array<double, num_groups> {0.2648, 1.5941};
   sigma_s["region_3"] = std::array<double, num_groups*num_groups>
       {0.230588, 0.02617, 0.00, 1.510694};
-  sigma_f["region_3"] = std::array<double, num_groups> {0.002, 0.045};
+  sigma_f["region_3"] = std::array<double, num_groups> {0.0019189300, 0.042016461};
   nu_sigma_f["region_3"] = std::array<double, num_groups> {0.004663, 0.1021};
   chi["region_3"] = std::array<double, num_groups> {1.0, 0.0};
   DiffusionCoefficient["region_3"]=std::array<double,num_groups> {1.259, 0.2091};
@@ -104,7 +110,7 @@ int main(int argc, char* argv[]) {
   sigma_t["region_4"] = std::array<double, num_groups> {0.2648, 1.5941};
   sigma_s["region_4"] = std::array<double, num_groups*num_groups>
       {0.230588, 0.02617, 0.00, 1.520810};
-  sigma_f["region_4"] = std::array<double, num_groups> {0.002, 0.045};
+  sigma_f["region_4"] = std::array<double, num_groups> {0.0019189300, 0.042016461};
   nu_sigma_f["region_4"] = std::array<double, num_groups> {0.004663, 0.1021};
   chi["region_4"] = std::array<double, num_groups> {1.0, 0.0};
   DiffusionCoefficient["region_4"]=std::array<double,num_groups> {1.259, 0.2091};
@@ -123,13 +129,13 @@ int main(int argc, char* argv[]) {
   sigma_a["region_5"]=std::array<double, num_groups> {0.008002, 0.08344 };
   // sigma_a["region_5"]=std::array<double, num_groups> {{0.008002, 0.08344}, {0.008002, 0.073324}, {0.008002, 0.073324}};
   double region5[6]={0.008002, 0.08344,0.008002, 0.073324, 0.008002, 0.073324};
-  
+  //Region5传入setSigmaATime()第一个参数是3，第二个是2，函数中第一个循环对6个元素遍历，第二个循环对前2个遍历，第三个循环对前两个遍历
   Functional_Temperature["region_5"]=sigma_a["region_5"];
   FunctionalTime["region_5"]=sigma_a["region_5"];  
   sigma_t["region_5"] = std::array<double, num_groups> {0.2648, 1.5941};
   sigma_s["region_5"] = std::array<double, num_groups*num_groups>
       {0.230588, 0.02617, 0.00, 1.510694};
-  sigma_f["region_5"] = std::array<double, num_groups> {0.002, 0.045};
+  sigma_f["region_5"] = std::array<double, num_groups> {0.0019189300, 0.042016461};
   nu_sigma_f["region_5"] = std::array<double, num_groups> {0.004663, 0.1021};
   chi["region_5"] = std::array<double, num_groups> {1.0, 0.0};
   DiffusionCoefficient["region_5"]=std::array<double,num_groups> {1.259, 0.2091};
@@ -167,7 +173,7 @@ int main(int argc, char* argv[]) {
 
         materials[name] = reinterpret_cast<Material*>(new FunctionalMaterial(id_num));
         static_cast<FunctionalMaterial*>(materials[name])->setNumEnergyGroups(num_groups,Time[name].size());
-                 materials[name]->setDifCoef(DiffusionCoefficient[name].data(),num_groups);//DiffusionCoefficient
+        materials[name]->setDifCoef(DiffusionCoefficient[name].data(),num_groups);//DiffusionCoefficient
         materials[name]->setBuckling(Buckling[name].data(),num_groups);//buckling
         static_cast<FunctionalMaterial*>(materials[name])->setGamma(Gamma[name].data(),num_groups);
         static_cast<FunctionalMaterial*>(materials[name])->sigmaAFuncTemp(true);
@@ -183,8 +189,8 @@ int main(int argc, char* argv[]) {
             // std::cout<<name<<std::endl;
             materials[name] = reinterpret_cast<Material*>(new FunctionalMaterial(id_num));
             static_cast<FunctionalMaterial*>(materials[name])->setNumEnergyGroups(num_groups,1);
-                     materials[name]->setDifCoef(DiffusionCoefficient[name].data(),num_groups);//DiffusionCoefficient
-        materials[name]->setBuckling(Buckling[name].data(),num_groups);//buckling
+            materials[name]->setDifCoef(DiffusionCoefficient[name].data(),num_groups);//DiffusionCoefficient
+            materials[name]->setBuckling(Buckling[name].data(),num_groups);//buckling
             static_cast<FunctionalMaterial*>(materials[name])->setGamma(Gamma[name].data(),num_groups);
             static_cast<FunctionalMaterial*>(materials[name])->sigmaAFuncTemp(true);
             static_cast<FunctionalMaterial*>(materials[name])->setSigmaA(sigma_a[name].data(),num_groups);
@@ -195,8 +201,8 @@ int main(int argc, char* argv[]) {
 
             materials[name] = new Material(id_num);
             materials[name]->setNumEnergyGroups(num_groups);
-                     materials[name]->setDifCoef(DiffusionCoefficient[name].data(),num_groups);//DiffusionCoefficient
-        materials[name]->setBuckling(Buckling[name].data(),num_groups);//buckling
+            materials[name]->setDifCoef(DiffusionCoefficient[name].data(),num_groups);//DiffusionCoefficient
+            materials[name]->setBuckling(Buckling[name].data(),num_groups);//buckling
             materials[name]->setSigmaA(sigma_a[name].data(),num_groups);
         }
 
@@ -209,7 +215,7 @@ int main(int argc, char* argv[]) {
         materials[name]->setNuSigmaF(nu_sigma_f[name].data(), num_groups);//nu_sigma_f
         materials[name]->setChi(chi[name].data(),num_groups);//chi
         id_num++;
-
+        // 计算总截面数，等于吸收截面加散射截面
         materials[name]->computeSigmaT();
         // std::cout<<"finish "<<name<<" set_value"<<std::endl;
     }
@@ -375,7 +381,9 @@ int main(int argc, char* argv[]) {
         std::string name = it->first;
         geometry->addMaterial(materials[name]);
     }
-
+// int ii=1;
+// while(ii==1)
+// printf("11");
     geometry->addCell(cell0);
     geometry->addCell(cell1);
     geometry->addCell(cell2);
@@ -397,7 +405,7 @@ int main(int argc, char* argv[]) {
     geometry->addLattice(assembly5);
     geometry->addLattice(assembly6);
     geometry->addLattice(core);
-
+    // 初始化fsr
     geometry->initializeFlatSourceRegions();
     // int ii =1;
     // while(ii)
@@ -425,9 +433,9 @@ int main(int argc, char* argv[]) {
 
     Tcmfd* tcmfd = new Tcmfd(geometry);
     tcmfd->setOmega(1.5);
-    double Matrix_lambda[2] ={0.0654, 1.35 };
-    double Matrix_beta[2]={0.0054, 0.001087};    
-    double Matrix_velocity[2]= {3e7, 3e5};
+    double Matrix_lambda[2] = {0.0654, 1.35};   // 缓发中子衰变常数
+    double Matrix_beta[2] = {0.0054, 0.001087}; // 缓发中子份额
+    double Matrix_velocity[2] = {3e7, 3e5}; // 中子速度
     tcmfd->setBeta(Matrix_beta,num_groups);
     tcmfd->setLambda(Matrix_lambda,num_groups);
     tcmfd->setVelocity(Matrix_velocity,num_groups);
@@ -435,17 +443,19 @@ int main(int argc, char* argv[]) {
     TransientSolver* transientSolver = new TransientSolver(geometry,tcmfd,cmfd,solver);
     transientSolver->setKappa(3.204e-11);
     transientSolver->setAlpha(3.83e-11);
-    transientSolver->setNu(2.43);
+    // transientSolver->setNu(2.43);
     transientSolver->setDtMOC(dt_moc);
     transientSolver->setDtCMFD(dt_cmfd);
     transientSolver->setStartTime(0.0);
     transientSolver->setEndTime(3.0);
     transientSolver->setNumDelayGroups(num_groups);
-    transientSolver->setTransientMethod("MAF");//有问题，但直接设值
+    // transientSolver->setTransientMethod("MAF");//有问题，但直接设值
+    transientSolver->setTransientMethod("ADIABATIC");
+    
     transientSolver->setPowerInit(1.e-6);
 
     transientSolver->solveInitialState();
-    for(int i =0;i<int(1.5/dt_moc);i++)
+    for(int i =0;i<int(3/dt_moc);i++)
         transientSolver->solveOuterStep();
     std::cout<<"chushihuawancheng"<<std::endl;
     log_printf(NORMAL, "Finished");

@@ -30,7 +30,8 @@ inline double norm(double* x, int nc);
 inline void vecWAXPY(double* vec_w, double a, double* vec_x, double* vec_y, int length);
 inline void vecWAXPY(float* vec_w, double a, double* vec_x, double* vec_y, int length);
 inline void linearSolve(double* mat, double* vec_x, double* vec_b, double* vec_x_old, double conv, double omega, int cx, int cy, int ng, int max_iter);
-inline void linearSolveRB(double* mat, double* vec_x, double* vec_b, double* vec_x_old, double conv, double omega, int cx, int cy, int ng, int max_iter);
+// inline void linearSolveRB(double* mat, double* vec_x, double* vec_b, double* vec_x_old, double conv, double omega, int cx, int cy, int ng, int max_iter);
+inline void linearSolveRB(double* mat, double* vec_x, double* vec_b, double* vec_x_old, double conv, double omega, int cx, int cy, int ng, int max_iter, double* mat_M);
 inline void dumpVector(double* vec, int length);
 inline void vecDivide(double* vec_w, double* vec_y, double* vec_x, int length);
 
@@ -214,7 +215,7 @@ void vecWAXPY(float* vec_w, double a, double* vec_x, double* vec_y, int length){
 
 
 void linearSolve(double* mat, double* vec_x, double* vec_b, double* vec_x_old, double conv, double omega, int cx, int cy, int ng, int max_iter){
-
+	// linearSolveRB(_A, _phi_new, _b_prime, _phi_temp, _conv_linear, _omega, _cx, _cy, _ng, 1000, _M);
     double norm = 1e10;
     int row = 0;
     double val = 0.0;
@@ -281,16 +282,25 @@ void linearSolve(double* mat, double* vec_x, double* vec_b, double* vec_x_old, d
 
     //std::cout << "GS iterations: " << iter << std::endl;
 }
-
-
-void linearSolveRB(double* mat, double* vec_x, double* vec_b, double* vec_x_old, double conv, double omega, int cx, int cy, int ng, int max_iter){
-
+// 为什么是这样的？
+// linearSolveRB(_A, _phi_new, _b_prime, _phi_temp, _conv_linear, _omega, _cx, _cy, _ng, 1000, _M);
+// void linearSolveRB(double* mat, double* vec_x, double* vec_b, double* vec_x_old, double conv, double omega, int cx, int cy, int ng, int max_iter){
+void linearSolveRB(double* mat, double* vec_x, double* vec_b, double* vec_x_old, double conv, double omega, int cx, int cy, int ng, int max_iter, double* mat_M){
     double norm = 1e10;
     int row = 0;
     double val = 0.0;
     int iter = 0;
     int x, y, g, e;
-
+    double source_old = 0.0, source_new = 0.0;
+// 	mat: 系统矩阵(A矩阵)
+// vec_x: 解向量(通量)
+// vec_b: 右端项
+// vec_x_old: 上一次迭代的解
+// conv: 收敛判据
+// omega: 松弛因子
+// cx,cy: 网格维度
+// ng: 能群数
+// max_iter: 最大迭代次数
     /* perform GS iteration */
     while (norm > conv){
 
@@ -336,7 +346,7 @@ void linearSolveRB(double* mat, double* vec_x, double* vec_b, double* vec_x_old,
 	    }
 	}
 
-        #pragma omp parallel for private(val, row, x, y, g) 
+        // #pragma omp parallel for private(val, row, x, y, g) 
 	for (y = 0; y < cy; y++){
 	    for (x = 1 - (y % 2); x < cx; x += 2){
 		for (g = 0; g < ng; g++){
@@ -376,12 +386,32 @@ void linearSolveRB(double* mat, double* vec_x, double* vec_b, double* vec_x_old,
 	}
 	
 	norm = 0.0;
-	for (int i = 0; i < cx*cy*ng; i++){
-	    if (vec_x[i] != 0.0)
-		norm += pow((vec_x[i] - vec_x_old[i])/(vec_x[i]), 2);
+	// for (int i = 0; i < cx*cy*ng; i++){
+	//     if (vec_x[i] != 0.0)
+	// 	norm += pow((vec_x[i] - vec_x_old[i])/(vec_x[i]), 2);
+	for (int i = 0; i < cx*cy; i++){
+	  for (int g = 0; g < ng; g++){
+	    source_new = 0.0;
+	    source_old = 0.0;
+	    for (int e = 0; e < ng; e++){
+	      source_new += mat_M[(i*ng+g)*ng+e] * vec_x    [i*ng+e];
+	      source_old += mat_M[(i*ng+g)*ng+e] * vec_x_old[i*ng+e];
+	    }
+	    if (source_new != 0.0)
+		norm += pow((source_new - source_old)/(source_new), 2);
+	  }
 	}
 
-	norm = pow(norm, 0.5) / (cx*cy*ng);
+	// norm = pow(norm, 0.5) / (cx*cy*ng);
+	norm = pow(norm/(cx*cy*ng), 0.5);
+
+	//norm = 0.0;
+	//for (int i = 0; i < cx*cy*ng; i++){
+	//    if (vec_x[i] != 0.0)
+	//	norm += pow((vec_x[i] - vec_x_old[i])/(vec_x[i]), 2);
+	//}
+
+	//norm = pow(norm, 0.5) / (cx*cy*ng);
 	iter++;
 
         //std::cout << "vec x sum: " << vecSum(vec_x, cx*cy*ng) << std::endl;

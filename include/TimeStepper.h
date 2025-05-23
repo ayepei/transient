@@ -20,9 +20,9 @@ enum materialState {
     PREVIOUS,
     CURRENT,
     FORWARD,
-    FSR,
-    FSR_OLD,
-    FORWARD_PREV
+    FORWARD_PREV,
+    SHAPE,
+    SHAPE_UPDATE
 };
 
 class TimeStepper {
@@ -44,11 +44,13 @@ public:
     void convergedMOCStep();
     void printTimes();
     void incrementTime(materialState state, double dt);
-        
+    void setDtMOC(double dt);
+    void setDtCMFD(double dt);
     /* getters */
     double getStartTime();
     double getEndTime();
-    double getImprovedRatio();
+    // double getImprovedRatio();
+    double getImprovedRatio(materialState state);
     double getTime(materialState state);
     double getDtMOC();
     double getDtCMFD();

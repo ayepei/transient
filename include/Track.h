@@ -65,16 +65,16 @@ private:
     std::vector<segment> _segments;
 
     /** The track which reflects out of this track along its "forward"
-     * direction for reflective boundary conditions. */
+     * direction for reflective boundary conditions. 该轨迹沿其 “向前” 方向反射出该轨迹，用于反射边界条件。*/
     Track* _track_in;
 
     /** The track which reflects out of this track along its "reverse"
-     * direction for reflective boundary conditions. */
+     * direction for reflective boundary conditions. 该轨迹沿其 “反向” 方向反射出该轨迹，用于反射边界条件。*/
     Track* _track_out;
 
     /** The first index into the global 2D ragged array of tracks for the track
      *  that reflects out of this track along its "forward" direction for
-     *  reflective boundary conditions. */
+     *  reflective boundary conditions. 用于定位"向前"方向的反射轨迹*/
     int _track_in_i;
 
     /** The second index into the global 2D ragged array of tracks for the track
@@ -84,7 +84,7 @@ private:
 
     /** The first index into the global 2D ragged array of tracks for the track
      *  that reflects out of this track along its "reverse" direction for
-     *  reflective boundary conditions. */ 
+     *  reflective boundary conditions. 用于定位"反向"方向的反射轨迹*/ 
     int _track_out_i;
 
     /** The second index into the global 2D ragged array of tracks for the track
@@ -95,7 +95,7 @@ private:
     /** A boolean to indicate whether to give the flux to the "forward" 
      *  (false) or "reverse" (true) direction of the track reflecting out of 
      *  this one along its "forward" direction for reflective boundary 
-     *  conditions.*/
+     *  conditions.false 表示将通量分配给反射轨迹的"向前"方向，true 表示将通量分配给反射轨迹的"反向"方向*/
     bool _refl_in;
 
     /** A boolean to indicate whether to give the flux to the "forward" 
@@ -106,12 +106,12 @@ private:
 
     /** A boolean to indicate whether the outgoing angular flux along this 
      *  track's "forward" direction should be zeroed out for vacuum boundary
-     *  conditions. */
+     *  conditions. 制是否应该将"向前"方向的出射角通量设为零*/
     bool _bc_in;
 
     /** A boolean to indicate whether the outgoing angular flux along this 
      *  track's "reverse" direction should be zeroed out for vacuum boundary
-     *  conditions. */
+     *  conditions. 控制是否应该将"反向"方向的出射角通量设为零*/
     bool  _bc_out;
 
 public:
